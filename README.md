@@ -1,4 +1,4 @@
-# SURBTC
+# Python SURBTC API Wrapper
 
 SURBTC Python API Wrapper, Bitcoin Exchange for Chile and Colombia.
 Tested on Python 3.5.
@@ -31,12 +31,10 @@ www.surbtc.com/docs/api
 
 The MIT License (MIT)
 
-Copyright (c) 2016 Sebastian Aranguiz 
+Copyright (c) 2016 Felipe Aránguiz | Sebastián Aránguiz
 
 See [LICENSE.md](LICENSE.md)
 
 ## Based on
-
-[delta575/SURBTC](github.com/delta575/SURBTC)
 
 [scottjbarr/bitfinex](scottjbarr/bitfinex)
