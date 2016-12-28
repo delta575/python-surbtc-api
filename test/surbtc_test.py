@@ -1,11 +1,13 @@
 import unittest
+# pip
 from decouple import config
-
+from requests import RequestException
+# local
 from surbtc import SURBTC
 
 TEST = config('TEST', cast=bool, default=False)
-API_KEY = config('API_KEY')
-API_SECRET = config('API_SECRET')
+API_KEY = config('SURBTC_API_KEY')
+API_SECRET = config('SURBTC_API_SECRET')
 MARKET_ID = 'btc-clp'
 
 
@@ -73,7 +75,8 @@ class SURBTCTest(unittest.TestCase):
         self.assertEqual(len(orders['orders']), per_page)
 
     def test_single_order_returns_data(self):
-        first_order = self.client.orders(MARKET_ID, page=1, per_page=1)['orders'][0]
+        orders = self.client.orders(MARKET_ID, page=1, per_page=1)['orders']
+        first_order = orders[0]
         single_order = self.client.single_order(first_order['id'])
         self.assertIn('order', single_order.keys())
 
@@ -90,4 +93,4 @@ class SURBTCTestBadApi(unittest.TestCase):
         self.assertRaises(ValueError, lambda: SURBTC())
 
     def test_markets_returns_error(self):
-        self.assertRaises(Exception, lambda: self.client.markets())
+        self.assertRaises(RequestException, lambda: self.client.markets())

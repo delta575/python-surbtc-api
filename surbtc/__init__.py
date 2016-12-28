@@ -1,1 +1,3 @@
-from surbtc.client import SURBTC
+from .client import SURBTC
+
+__all__ = SURBTC
