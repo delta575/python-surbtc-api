@@ -132,12 +132,11 @@ class SURBTC(object):
 
     # ORDERS------------------------------------------------------------------------------------------------------------
     
-    def new_order(self, market_id, order_type, limit, amount, original_amount, price_type):
+    def new_order(self, market_id, order_type, limit, amount, price_type):
         payload = {
             'type': order_type,
             'limit': limit,
             'amount': amount,
-            'original_amount': original_amount,
             'price_type': price_type,
         }
         return self.new_order_payload(market_id, payload)
