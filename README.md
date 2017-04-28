@@ -19,12 +19,12 @@ Rename .env.example > .env
 
 ## Usage
 
-###Setup Public:
+### Setup Public:
 
     from surbtc import SURBTC
     client = SURBTC.Public()
 
-###Setup Auth (ApiKey/Secret requiered, Test is optional (default: False)):
+### Setup Auth (ApiKey/Secret requiered, Test is optional (default: False)):
 
     from surbtc import SURBTC
     client = SURBTC.Auth(API_KEY, API_SECRET, TEST)
