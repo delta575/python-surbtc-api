@@ -19,12 +19,17 @@ Rename .env.example > .env
 
 ## Usage
 
-Setup (ApiKey/Secret requiered):
+###Setup Public:
 
     from surbtc import SURBTC
-    client = SURBTC(API_KEY, API_SECRET)
+    client = SURBTC.Public()
 
-Market Pairs:
+###Setup Auth (ApiKey/Secret requiered, Test is optional (default: False)):
+
+    from surbtc import SURBTC
+    client = SURBTC.Auth(API_KEY, API_SECRET, TEST)
+
+## Market Pairs:
 
     btc-clp
     btc-cop

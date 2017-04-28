@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='surbtc',
-    version='0.1.0',
+    version='0.2.0',
     description='SURBTC API Wrapper for Python 3',
     url='https://github.com/delta575/python-surbtc-api',
     author='Felipe Aránguiz, Sebastian Aránguiz',
