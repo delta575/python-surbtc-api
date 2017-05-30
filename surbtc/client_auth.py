@@ -1,14 +1,13 @@
 import base64
-from datetime import datetime
 import hashlib
 import hmac
 import json
+from datetime import datetime
 
 # local
-from .common import build_route, check_keys, gen_nonce
-
 from . import constants as _c
 from . import models as _m
+from .common import build_route, check_keys, gen_nonce
 from .client_public import SURBTCPublic
 
 _p = _c.Path
@@ -16,7 +15,7 @@ _p = _c.Path
 
 class SURBTCAuth(SURBTCPublic):
 
-    def __init__(self, key=False, secret=False, test=False, timeout=30):
+    def __init__(self, key=False, secret=False, test=False, timeout=60):
         SURBTCPublic.__init__(self, test, timeout)
         check_keys(key, secret)
         self.KEY = str(key)
@@ -24,30 +23,45 @@ class SURBTCAuth(SURBTCPublic):
 
     def quotation(self,
                   market_id: _c.Market,
-                  currency: _c.Currency,
                   quotation_type: _c.QuotationType,
-                  price_limit: float,
-                  amount: float):
-        market_id = _c.Market.check(market_id)
-        currency = _c.Currency.check(currency)
-        quotation_type = _c.QuotationType.check(quotation_type)
+                  amount: float,
+                  limit: float=None):
+        market_id = _c.Market.check(market_id).value
+        quotation_type = _c.QuotationType.check(quotation_type).value
         payload = {
             'quotation': {
-                'type': quotation_type.value,
-                'limit': str([str(price_limit), currency.value]),
-                'amount': str([str(amount), currency.value])
+                'type': quotation_type,
+                'amount': str(amount),
+                'limit': str(limit) if limit else None,
             },
         }
         url, path = self.url_path_for(_p.QUOTATION,
-                                      path_arg=market_id.value)
+                                      path_arg=market_id)
         headers = self._sign_payload(method='POST', path=path, payload=payload)
         data = self.post(url, headers=headers, data=payload)
         return _m.Quotation.create_from_json(data['quotation'])
 
+    def quotation_market(self,
+                         market_id: _c.Market,
+                         quotation_type: _c.QuotationType,
+                         amount: float):
+        return self.quotation(
+            market_id=market_id, quotation_type=quotation_type,
+            amount=amount, limit=None)
+
+    def quotation_limit(self,
+                        market_id: _c.Market,
+                        quotation_type: _c.QuotationType,
+                        amount: float,
+                        limit: float):
+        return self.quotation(
+            market_id=market_id, quotation_type=quotation_type,
+            amount=amount, limit=limit)
+
     def fee_percentage(self,
                        market_id: _c.Market,
                        order_type: _c.OrderType,
-                       market_order: bool = False):
+                       market_order: bool=False):
         market_id = _c.Market.check(market_id)
         order_type = _c.OrderType.check(order_type)
         params = {
@@ -62,8 +76,8 @@ class SURBTCAuth(SURBTCPublic):
 
     def trade_transaction_pages(self,
                                 market_id: _c.Market,
-                                page: int = None,
-                                per_page: int = None):
+                                page: int=None,
+                                per_page: int=None):
         market_id = _c.Market.check(market_id)
         # TODO: Pagination isn't working, it always returns 25 items
         params = {
@@ -113,9 +127,9 @@ class SURBTCAuth(SURBTCPublic):
     def balance_event_pages(self,
                             currencies,
                             event_names,
-                            page: int = None,
-                            per_page: int = None,
-                            relevant: bool = None):
+                            page: int=None,
+                            per_page: int=None,
+                            relevant: bool=None):
         currencies = [_c.Currency.check(c).value
                       for c in currencies]
         event_names = [_c.BalanceEvent.check(e).value
@@ -140,7 +154,7 @@ class SURBTCAuth(SURBTCPublic):
                   order_type: _c.OrderType,
                   price_type: _c.OrderPriceType,
                   amount: float,
-                  limit: float = None):
+                  limit: float=None):
         market_id = _c.Market.check(market_id)
         order_type = _c.OrderType.check(order_type)
         price_type = _c.OrderPriceType.check(price_type)
@@ -148,7 +162,7 @@ class SURBTCAuth(SURBTCPublic):
             'type': order_type.value,
             'price_type': price_type.value,
             'amount': str(amount),
-            'limit': str(limit),
+            'limit': str(limit) if limit else None,
         }
         return self.new_order_payload(market_id, payload)
 
@@ -161,10 +175,10 @@ class SURBTCAuth(SURBTCPublic):
 
     def order_pages(self,
                     market_id: _c.Market,
-                    page: int = None,
-                    per_page: int = None,
-                    state: _c.OrderState = None,
-                    minimum_exchanged: float = None):
+                    page: int=None,
+                    per_page: int=None,
+                    state: _c.OrderState=None,
+                    minimum_exchanged: float=None):
         market_id = _c.Market.check(market_id)
         state = _c.OrderState.check(state)
         if per_page and per_page > _c.ORDERS_LIMIT:
@@ -174,8 +188,7 @@ class SURBTCAuth(SURBTCPublic):
             'per': per_page,
             'page': page,
             'state': state.value if state else state,
-            # TODO: API has a typo, 'minimun' must be 'minimum'
-            'minimun_exchanged': minimum_exchanged,
+            'minimum_exchanged': minimum_exchanged,
         }
         url, path = self.url_path_for(_p.ORDERS,
                                       path_arg=market_id.value)

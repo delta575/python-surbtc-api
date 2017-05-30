@@ -1,9 +1,9 @@
-import logging
 import time
+from datetime import datetime, timedelta
 from urllib.parse import urlencode
 
-# pip
-import requests
+# local
+from . import logger
 
 
 def gen_nonce():
@@ -13,42 +13,10 @@ def gen_nonce():
     return str(int(time.time() * 1E6))
 
 
-def log_message(msg):
-    msg = "Trading API: " + msg
-    return msg
-
-
-def log_error(msg):
-    logging.error(log_message(msg))
-    return log_message(msg)
-
-
-def log_warning(msg):
-    logging.warning(log_message(msg))
-    return log_message(msg)
-
-
-def log_request_exception(err: requests.RequestException):
-    msg = 'RequestsException: ' + str(err)
-    return log_error(msg)
-
-
-def log_json_decode():
-    msg = 'JSONDecodeError: Unable to decode JSON from response (no content).'
-    return log_error(msg)
-
-
 def check_keys(key, secret):
     if not key or not secret:
         msg = 'API Key and Secret are needed!'
-        log_error(msg)
-        raise ValueError(msg)
-
-
-def check_response(response):
-    if 'message' in response:
-        msg = 'ResponseMessage: ' + response['message']
-        log_error(msg)
+        logger.log_error(msg)
         raise ValueError(msg)
 
 
@@ -78,3 +46,12 @@ def update_dictionary(old_dict: dict, new_dict: dict):
         keys = list(new_dict.keys())
         for k in keys:
             old_dict[k] = new_dict[k]
+
+
+def date_range(start_date, end_date):
+    for n in range(int((end_date - start_date).days)):
+        yield start_date + timedelta(n)
+
+
+def current_utc_date():
+    return datetime.utcnow().date()

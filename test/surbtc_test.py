@@ -1,16 +1,13 @@
 import unittest
-
 from datetime import datetime, timedelta
 
 # pip
 from decouple import config
-from requests import RequestException
 
 # local
-from surbtc import SURBTC
-from surbtc import models
+from surbtc import SURBTC, errors, models
 
-TEST = config('TEST', cast=bool, default=False)
+TEST = config('SURBTC_TEST', cast=bool, default=True)
 API_KEY = config('SURBTC_API_KEY')
 API_SECRET = config('SURBTC_API_SECRET')
 MARKET_ID = SURBTC.Market.BTC_CLP
@@ -53,9 +50,20 @@ class SURBTCAuthTest(unittest.TestCase):
 
     def test_quotation(self):
         quotation = self.client.quotation(
-            MARKET_ID, SURBTC.Currency.BTC,
-            SURBTC.QuotationType.ASK_GIVEN_SIZE,
-            price_limit=1, amount=1)
+            MARKET_ID, quotation_type=SURBTC.QuotationType.ASK_GIVEN_SIZE,
+            amount=1, limit=1)
+        self.assertIsInstance(quotation, models.Quotation)
+
+    def test_quotation_market(self):
+        quotation = self.client.quotation(
+            MARKET_ID, quotation_type=SURBTC.QuotationType.ASK_GIVEN_SIZE,
+            amount=1)
+        self.assertIsInstance(quotation, models.Quotation)
+
+    def test_quotation_limit(self):
+        quotation = self.client.quotation(
+            MARKET_ID, quotation_type=SURBTC.QuotationType.ASK_GIVEN_SIZE,
+            amount=1, limit=1)
         self.assertIsInstance(quotation, models.Quotation)
 
     def test_fee_percentage(self):
@@ -122,7 +130,9 @@ class SURBTCAuthTestBadApi(unittest.TestCase):
         self.assertIsInstance(self.client, SURBTC.Auth)
 
     def test_key_secret(self):
-        self.assertRaises(ValueError, lambda: SURBTC.Auth())
+        self.assertRaises(ValueError,
+                          lambda: SURBTC.Auth())
 
     def test_balance_returns_error(self):
-        self.assertRaises(RequestException, lambda: self.client.balance('clp'))
+        self.assertRaises(errors.InvalidResponse,
+                          lambda: self.client.balance(SURBTC.Currency.CLP))

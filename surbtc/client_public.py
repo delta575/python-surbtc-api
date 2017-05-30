@@ -1,8 +1,7 @@
 # local
-from .base import Client
-
 from . import constants as _c
 from . import models as _m
+from .base import Client
 from .server import SURBTCServer
 
 _p = _c.Path
@@ -10,7 +9,9 @@ _p = _c.Path
 
 class SURBTCPublic(Client):
 
-    def __init__(self, test=False, timeout=30):
+    error_key = 'message'
+
+    def __init__(self, test=False, timeout=60):
         Client.__init__(self, SURBTCServer(test), timeout)
 
     def markets(self):
