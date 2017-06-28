@@ -227,10 +227,10 @@ class SURBTCAuth(SURBTCPublic):
         headers = self._sign_payload(method='POST', path=path, payload=payload)
         return self.post(url, headers=headers, data=payload)
 
-    def simulate_withdrawal(self, currency, amount):
+    def simulate_withdrawal(self, currency: _c.Currency, amount: float):
         payload = {
-            'currency': currency,
-            'amount': amount,
+            'currency': _c.Currency.check(currency).value,
+            'amount': str(amount),
             'simulate': True,
             'amount_includes_fee': True
         }
