@@ -227,6 +227,18 @@ class SURBTCAuth(SURBTCPublic):
         headers = self._sign_payload(method='POST', path=path, payload=payload)
         return self.post(url, headers=headers, data=payload)
 
+    def simulate_withdrawal(self, currency, amount):
+        payload = {
+            'currency': currency,
+            'amount': amount,
+            'simulate': True,
+            'amount_includes_fee': True
+        }
+        url, path = self.url_path_for(_p.WITHDRAWAL, path_arg=currency)
+        headers = self._sign_payload(method='POST', path=path, payload=payload)
+        data = self.post(url, headers=headers, data=payload)
+        return _m.SimulateWithdrawal.create_from_json(data['withdrawal'])
+
     # PRIVATE METHODS ---------------------------------------------------------
     def _sign_payload(self, method, path, params=None, payload=None):
 
