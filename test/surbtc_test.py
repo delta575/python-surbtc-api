@@ -120,6 +120,10 @@ class SURBTCAuthTest(unittest.TestCase):
         self.assertIsInstance(new_order, models.Order)
         self.assertIsInstance(canceled_order, models.Order)
 
+    def test_simulate_withdrawal(self):
+        simulate_withdrawal = self.client.simulate_withdrawal(SURBTC.Currency.BTC,0)
+        self.assertIsInstance(simulate_withdrawal, models.SimulateWithdrawal)
+
 
 class SURBTCAuthTestBadApi(unittest.TestCase):
 

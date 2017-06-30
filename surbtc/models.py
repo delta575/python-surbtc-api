@@ -351,3 +351,49 @@ class TradeTransaction(
             triggering_order=Order.create_from_json(
                 transaction['triggering_order']),
         )
+
+class WithdrawalData(
+    namedtuple('withdrawal',[
+        'target_address',
+        'tx_hash',
+        'type'
+    ])
+):
+
+    @classmethod
+    def create_from_json(cls, withdrawal):
+
+        return cls(
+            target_address=withdrawal['target_address'],
+            tx_hash=withdrawal['tx_hash'],
+            type=withdrawal['type']
+        )
+
+class SimulateWithdrawal(
+    namedtuple('withdrawal',[
+        'id',
+        'created_at',
+        'currency',
+        'withdrawal_data',
+        'amount',
+        'fee',
+        'state'
+    ])
+):
+
+    @classmethod
+    def create_from_json(cls, withdrawal):
+
+        created_at = None
+        if withdrawal['created_at']:
+            created_at = parse_datetime(withdrawal['created_at'])
+
+        return cls(
+            id=withdrawal['id'],
+            created_at=created_at,
+            currency=withdrawal['currency'],
+            withdrawal_data=WithdrawalData.create_from_json(withdrawal['withdrawal_data']),
+            amount=Amount.create_from_json(withdrawal['amount']),
+            fee=Amount.create_from_json(withdrawal['fee']),
+            state=withdrawal['state']
+        )
