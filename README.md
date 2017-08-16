@@ -1,6 +1,6 @@
 # Python SURBTC API Wrapper
 
-SURBTC Python API Wrapper, Bitcoin Exchange for Chile and Colombia.
+SURBTC Python API Wrapper, Cryptocurrency Exchange for Chile, Colombia and Peru.
 Tested on Python 3.5
 
 [Go to SURBTC](https://www.surbtc.com)
@@ -31,14 +31,22 @@ Rename .env.example > .env
 
 ## Market Pairs:
 
+ ### Bitcoin Pairs:
     btc-clp
     btc-cop
+    btc-pen
+
+ ###Ether Pairs:
+    eth-btc
+    eth-clp
+    eth-cop
+    eth-pen
 
 Open for everyone:
 [www.surbtc.com](https://www.surbtc.com)
 
-SURBTC API Doc:
-[www.surbtc.com/docs/api](https://www.surbtc.com/docs/api)
+SURBTC API Docs:
+[www.surbtc.com/docs/api](https://api.surbtc.com)
 
 ## Licence
 

@@ -4,7 +4,13 @@ from datetime import datetime
 
 
 def parse_datetime(datetime_str):
-    return datetime.strptime(datetime_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+    if datetime_str:
+        return datetime.strptime(datetime_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+
+
+def float_or_none(value):
+    if value:
+        return float(value)
 
 
 class Amount(
@@ -36,9 +42,9 @@ class PagesMeta(
     def create_from_json(cls, meta):
         if meta:
             return cls(
-                current_page=meta['current_page'],
-                total_count=meta['total_count'],
-                total_pages=meta['total_pages']
+                current_page=int(meta['current_page']),
+                total_count=int(meta['total_count']),
+                total_pages=int(meta['total_pages']),
             )
         return meta
 
@@ -84,8 +90,8 @@ class Ticker(
             min_ask=Amount.create_from_json(ticker['min_ask']),
             max_bid=Amount.create_from_json(ticker['max_bid']),
             volume=Amount.create_from_json(ticker['volume']),
-            price_variation_24h=float(ticker['price_variation_24h']),
-            price_variation_7d=float(ticker['price_variation_7d']),
+            price_variation_24h=float_or_none(ticker['price_variation_24h']),
+            price_variation_7d=float_or_none(ticker['price_variation_7d']),
         )
 
 
@@ -343,10 +349,10 @@ class TradeTransaction(
             created_at=parse_datetime(transaction['created_at']),
             updated_at=parse_datetime(transaction['updated_at']),
             amount_sold=Amount.create_from_json(
-                [transaction['amount_sold'],
+                [transaction['amount_sold'] / 1e8,
                  transaction['amount_sold_currency']]),
             price_paid=Amount.create_from_json(
-                [transaction['price_paid'],
+                [transaction['price_paid'] / 1e2,
                  transaction['price_paid_currency']]),
             ask_order=Order.create_from_json(transaction['ask']),
             bid_order=Order.create_from_json(transaction['bid']),
@@ -354,48 +360,115 @@ class TradeTransaction(
                 transaction['triggering_order']),
         )
 
-class WithdrawalData(
-    namedtuple('withdrawal',[
-        'target_address',
-        'tx_hash',
-        'type'
+
+class TradeTransactionPages(
+    namedtuple('trade_transaction_pages', [
+        'trade_transactions',
+        'meta',
     ])
 ):
 
     @classmethod
-    def create_from_json(cls, withdrawal):
-
+    def create_from_json(cls, transactions, pages_meta):
         return cls(
-            target_address=withdrawal['target_address'],
-            tx_hash=withdrawal['tx_hash'],
-            type=withdrawal['type']
+            trade_transactions=[TradeTransaction.create_from_json(transaction)
+                                for transaction in transactions],
+            meta=PagesMeta.create_from_json(pages_meta),
         )
 
-class SimulateWithdrawal(
-    namedtuple('withdrawal',[
-        'id',
-        'created_at',
-        'currency',
-        'withdrawal_data',
-        'amount',
-        'fee',
-        'state'
+
+class TransferData(
+    namedtuple('transfer', [
+        'type',
+        'address',
+        'tx_hash',
     ])
 ):
 
     @classmethod
-    def create_from_json(cls, withdrawal):
+    def create_from_json(cls, transfer, address_key):
+        return cls(
+            type=transfer['type'],
+            address=transfer[address_key],
+            tx_hash=transfer['tx_hash']
+        )
 
-        created_at = None
-        if withdrawal['created_at']:
-            created_at = parse_datetime(withdrawal['created_at'])
+
+class Transfer(
+    namedtuple('transfer', [
+        'id',
+        'created_at',
+        # 'updated_at', Missing from response?
+        'amount',
+        'fee',
+        'currency',
+        'state',
+        'data',
+    ])
+):
+    address_key = None
+    data_key = None
+
+    @classmethod
+    def create_from_json(cls, transfer):
+        return cls(
+            id=transfer['id'],
+            created_at=parse_datetime(transfer.get('created_at')),
+            amount=Amount.create_from_json(transfer['amount']),
+            # Fee is only returned on withdrawals
+            fee=Amount.create_from_json(transfer.get('fee')),
+            currency=transfer['currency'],
+            state=transfer['state'],
+            data=TransferData.create_from_json(
+                transfer[cls.data_key], cls.address_key),
+        )
+
+
+class Withdrawal(Transfer):
+    address_key = 'target_address'
+    data_key = 'withdrawal_data'
+
+
+class Deposit(Transfer):
+    address_key = 'address'
+    data_key = 'deposit_data'
+
+
+class AveragePrice(
+    namedtuple('reports', [
+        'datetime',
+        'amount'
+    ])
+):
+
+    @classmethod
+    def create_from_json(cls, report):
 
         return cls(
-            id=withdrawal['id'],
-            created_at=created_at,
-            currency=withdrawal['currency'],
-            withdrawal_data=WithdrawalData.create_from_json(withdrawal['withdrawal_data']),
-            amount=Amount.create_from_json(withdrawal['amount']),
-            fee=Amount.create_from_json(withdrawal['fee']),
-            state=withdrawal['state']
+            datetime=report[0],
+            amount=report[1]
+        )
+
+
+class Candlestick(
+    namedtuple('report', [
+        'datetime',
+        'open',
+        'high',
+        'low',
+        'close',
+        'volume'
+    ])
+):
+
+    @classmethod
+    def create_from_json(cls, report):
+
+        return cls(
+            datetime=report[0],
+            open=report[1],
+            high=report[2],
+            low=report[3],
+            close=report[4],
+            volume=report[5],
         )

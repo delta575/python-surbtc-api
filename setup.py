@@ -6,7 +6,7 @@ if not (sys.version_info >= (3, 5)):
 
 setup(
     name='surbtc',
-    version='0.2.3',
+    version='0.2.4',
     description='SURBTC API Wrapper for Python 3',
     url='https://github.com/delta575/python-surbtc-api',
     author='Felipe Aránguiz, Sebastian Aránguiz',
