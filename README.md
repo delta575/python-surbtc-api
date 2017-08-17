@@ -36,7 +36,7 @@ Rename .env.example > .env
     btc-cop
     btc-pen
 
- ###Ether Pairs:
+ ### Ether Pairs:
     eth-btc
     eth-clp
     eth-cop
